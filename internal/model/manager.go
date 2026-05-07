@@ -177,17 +177,21 @@ func (m ManagerModel) View() string {
 func (m ManagerModel) validateWord(word string) tea.Cmd {
 	return func() tea.Msg {
 		ctx := context.Background()
-		prompt := fmt.Sprintf("'%s' gerçekten var olan İngilizce bir kelime mi? Eğer varsa 'YES: [kısa anlamı]' yoksa 'NO: [nedeni]' şeklinde cevap ver.", word)
+		p, err := data.LoadPrompt("word_validation", map[string]string{"Word": word})
+		if err != nil {
+			return errMsg(err)
+		}
+
 		req := &api.ChatRequest{
 			Model: "translategemma:latest",
 			Messages: []api.Message{
-				{Role: "system", Content: "Sadece YES veya NO ile başlayan çok kısa cevaplar ver."},
-				{Role: "user", Content: prompt},
+				{Role: "system", Content: p.System},
+				{Role: "user", Content: p.User},
 			},
 			Stream: new(bool),
 		}
 		var respStr string
-		err := m.ollama.Chat(ctx, req, func(r api.ChatResponse) error {
+		err = m.ollama.Chat(ctx, req, func(r api.ChatResponse) error {
 			respStr = r.Message.Content
 			return nil
 		})

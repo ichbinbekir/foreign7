@@ -4,4 +4,9 @@ run:
 	@$(GO) run $(CURDIR)/cmd/foreign7
 
 build:
-	@$(GO) build -o $(CURDIR)/bin/ $(CURDIR)/cmd/foreign7
+	@mkdir -p $(CURDIR)/bin
+	@cp -r $(CURDIR)/assets $(CURDIR)/bin/
+	@$(GO) build -o $(CURDIR)/bin/foreign7 $(CURDIR)/cmd/foreign7
+
+clean:
+	@rm -rf $(CURDIR)/bin

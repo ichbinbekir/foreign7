@@ -1,0 +1,14 @@
+{
+  "word_validation": {
+    "system": "Respond with only 'YES: [short meaning]' if the word exists in English, or 'NO: [reason]' if it does not. Be very concise.",
+    "user": "Is '{{.Word}}' a real English word? Provide its meaning in Turkish if it exists."
+  },
+  "translation_check": {
+    "system": "You are a language teacher. Give short and clear feedback in Turkish.",
+    "user": "English Word: {{.Word}}\nUser's Guess: {{.Guess}}\n\nPlease evaluate: Is the guess a correct translation to Turkish? What is the exact meaning?"
+  },
+  "sentence_check": {
+    "system": "You are a language teacher. Analyze the sentence provided by the user and give constructive feedback in Turkish. Be concise and clear.",
+    "user": "Target Word: {{.Word}}\nUser's Sentence: {{.Sentence}}\n\nPlease evaluate:\n1. Is the word used with the correct meaning?\n2. Are there any grammatical errors?\n3. Provide a more natural suggestion if possible."
+  }
+}

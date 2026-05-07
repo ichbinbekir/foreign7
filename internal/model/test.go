@@ -2,12 +2,12 @@ package model
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/ichbinbekir/forign7/internal/data"
 	"github.com/ichbinbekir/tearouter"
 	"github.com/ollama/ollama/api"
 )
@@ -122,17 +122,24 @@ func (m TestModel) View() string {
 func (m TestModel) checkAnswer(word, answer string) tea.Cmd {
 	return func() tea.Msg {
 		ctx := context.Background()
-		prompt := fmt.Sprintf("Kelime: %s\nKullanıcının Tahmini: %s\nLütfen değerlendir. Doğru mu, yanlış mı? Tam anlamı nedir?", word, answer)
+		p, err := data.LoadPrompt("translation_check", map[string]string{
+			"Word":  word,
+			"Guess": answer,
+		})
+		if err != nil {
+			return errMsg(err)
+		}
+
 		req := &api.ChatRequest{
 			Model: "translategemma:latest",
 			Messages: []api.Message{
-				{Role: "system", Content: "Sen bir dil öğretmenisin. Kısa ve net cevaplar ver."},
-				{Role: "user", Content: prompt},
+				{Role: "system", Content: p.System},
+				{Role: "user", Content: p.User},
 			},
 			Stream: new(bool),
 		}
 		var respStr string
-		err := m.ollama.Chat(ctx, req, func(r api.ChatResponse) error {
+		err = m.ollama.Chat(ctx, req, func(r api.ChatResponse) error {
 			respStr = r.Message.Content
 			return nil
 		})

@@ -15,6 +15,9 @@
     - [x] **Export/Dışa Aktar:** Listelerin üzerine gelip 'e' tuşuna basarak dışa aktarma (Yedekleme).
     - [x] **Import/İçe Aktar:** Bilgisayardaki `.txt` dosyalarını kütüphaneye dahil etme.
     - [x] **Liste Silme:** Listeler üzerinden 'x' tuşu ile silme. Son liste silindiğinde yeni liste oluşturmaya zorlar.
+- [x] **Teknik Geliştirmeler:**
+    - [x] **Gelişmiş Prompting:** `assets/prompts.json` üzerinden sistem talimatlarını dinamik yönetme.
+    - [x] **Build Sistemi:** Makefile ile varlıkların (`assets`) otomatik kopyalanması ve `bin/` altına derleme.
 
 ## 🚀 Sırada Ne Var?
 
@@ -28,7 +31,6 @@
 - [ ] **Aralıklı Tekrar (Spaced Repetition):** Yanlış bilinen kelimeleri daha sık sorma mantığı.
 
 ### 3. Teknik Geliştirmeler
-- [ ] **Gelişmiş Prompting:** `prompts.json` üzerinden sistem talimatlarını daha dinamik yönetme.
 - [ ] **Ses Desteği:** Kelimelerin telaffuzlarını dinleme özelliği.
 
 ## 🛠 Mevcut Mimari Notları
@@ -36,3 +38,4 @@
 - **Veri Yolu:** `~/.cache/foreign7/*.txt` (Doğrudan cache kullanımı)
 - **Modeller:** `internal/model/*.go` (Her ekran bir model: menu, test, sentence_mode, manager, list_select, create_list, import_list)
 - **Model:** `translategemma:latest` (Ollama)
+- **Promptlar:** `assets/prompts.json` (JSON tabanlı template sistemi)

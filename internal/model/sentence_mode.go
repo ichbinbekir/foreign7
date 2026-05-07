@@ -2,12 +2,12 @@ package model
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/ichbinbekir/forign7/internal/data"
 	"github.com/ichbinbekir/tearouter"
 	"github.com/ollama/ollama/api"
 )
@@ -123,18 +123,24 @@ func (m SentenceTestModel) View() string {
 func (m SentenceTestModel) checkSentence(word, sentence string) tea.Cmd {
 	return func() tea.Msg {
 		ctx := context.Background()
-		prompt := fmt.Sprintf("Kelime: %s\nKullanıcının Cümlesi: %s\n\nLütfen değerlendir:\n1. Kelime doğru anlamda kullanılmış mı?\n2. Gramer hataları var mı?\n3. Daha doğal bir kullanım önerisi ver.", word, sentence)
+		p, err := data.LoadPrompt("sentence_check", map[string]string{
+			"Word":     word,
+			"Sentence": sentence,
+		})
+		if err != nil {
+			return errMsg(err)
+		}
 		
 		req := &api.ChatRequest{
 			Model: "translategemma:latest",
 			Messages: []api.Message{
-				{Role: "system", Content: "Sen bir dil öğretmenisin. Kullanıcının kurduğu cümleyi analiz et ve yapıcı geri bildirim ver. Çok uzun olmayan, net bir cevap yaz."},
-				{Role: "user", Content: prompt},
+				{Role: "system", Content: p.System},
+				{Role: "user", Content: p.User},
 			},
 			Stream: new(bool),
 		}
 		var respStr string
-		err := m.ollama.Chat(ctx, req, func(r api.ChatResponse) error {
+		err = m.ollama.Chat(ctx, req, func(r api.ChatResponse) error {
 			respStr = r.Message.Content
 			return nil
 		})
