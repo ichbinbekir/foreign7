@@ -23,7 +23,7 @@ type SentenceTestModel struct {
 
 func NewSentenceTestModel(ollama *api.Client, words []string) SentenceTestModel {
 	ta := textarea.New()
-	ta.Placeholder = "Bu kelimeyi bir cümlede kullanın..."
+	ta.Placeholder = data.T["sentence_placeholder"]
 	ta.Focus()
 	ta.SetHeight(3)
 
@@ -91,13 +91,13 @@ func (m SentenceTestModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m SentenceTestModel) View() string {
 	var sb strings.Builder
-	sb.WriteString(titleStyle.Render("Cümle Kurma Testi") + "\n\n")
+	sb.WriteString(titleStyle.Render(data.T["sentence_title"]) + "\n\n")
 
 	if len(m.words) == 0 {
-		return docStyle.Render("Kelimeler yüklenemedi. Liste boş olabilir.")
+		return docStyle.Render(data.T["test_error_no_words"])
 	}
 
-	sb.WriteString("Kelime: " + wordStyle.Render(m.words[m.currentWordIdx]) + "\n\n")
+	sb.WriteString(data.T["sentence_prefix"] + wordStyle.Render(m.words[m.currentWordIdx]) + "\n\n")
 
 	if m.feedback != "" {
 		fbStyle := lipgloss.NewStyle().
@@ -106,15 +106,15 @@ func (m SentenceTestModel) View() string {
 			Padding(1).
 			Width(60)
 
-		sb.WriteString("Sizin Cümleniz:\n" + m.textarea.Value() + "\n\n")
+		sb.WriteString(data.T["sentence_your_sentence"] + "\n" + m.textarea.Value() + "\n\n")
 		sb.WriteString(fbStyle.Render(m.feedback) + "\n")
-		sb.WriteString("\n(Sonraki için Enter, Menü için Esc)")
+		sb.WriteString("\n" + data.T["test_next_info"])
 	} else {
 		sb.WriteString(m.textarea.View())
 		if m.isChecking {
-			sb.WriteString("\n\nÖğretmen cümleyi inceliyor...")
+			sb.WriteString("\n\n" + data.T["sentence_analyzing"])
 		} else {
-			sb.WriteString("\n\n(Cümleyi bitirince Enter'a basın)")
+			sb.WriteString("\n\n" + data.T["sentence_hint"])
 		}
 	}
 	return docStyle.Render(sb.String())

@@ -18,7 +18,7 @@ type CreateListModel struct {
 
 func NewCreateListModel() CreateListModel {
 	ti := textinput.New()
-	ti.Placeholder = "Liste adı (örn: verbs, daily-phrases)..."
+	ti.Placeholder = data.T["create_placeholder"]
 	ti.Focus()
 	ti.CharLimit = 32
 	ti.Width = 40
@@ -51,17 +51,17 @@ func (m CreateListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			err := data.CreateList(name)
 			if err != nil {
 				if os.IsExist(err) {
-					m.err = fmt.Errorf("bu isimde bir liste zaten var")
+					m.err = fmt.Errorf(data.T["create_error_exists"])
 				} else {
 					m.err = err
 				}
 				return m, nil
 			}
 
-			// Listeyi aktif et ve yönlendir
+			// Activate the list and redirect
 			data.ActiveLists[name] = true
 			data.SelectedList = name
-			// Replace kullanıyoruz ki geri gelindiğinde tekrar isim sorma ekranına düşmeyelim
+			// Use Replace to avoid going back to this screen
 			return m, tearouter.Redirect(tearouter.Replace, "/manage")
 		}
 	}
@@ -73,14 +73,14 @@ func (m CreateListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m CreateListModel) View() string {
 	var sb strings.Builder
-	sb.WriteString(titleStyle.Render("➕ Yeni Liste Oluştur") + "\n\n")
-	sb.WriteString("Oluşturulacak listenin adını yazın:\n\n")
+	sb.WriteString(titleStyle.Render(data.T["create_title"]) + "\n\n")
+	sb.WriteString(data.T["create_prompt"] + "\n\n")
 	sb.WriteString(m.textInput.View() + "\n")
 
 	if m.err != nil {
 		sb.WriteString("\n" + errorStyle.Render("Hata: "+m.err.Error()) + "\n")
 	}
 
-	sb.WriteString("\n(Onaylamak için Enter, Vazgeçmek için Esc)")
+	sb.WriteString("\n" + data.T["create_confirm"])
 	return docStyle.Render(sb.String())
 }

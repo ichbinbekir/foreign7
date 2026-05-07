@@ -32,7 +32,7 @@ type errMsg error
 
 func NewTestModel(ollama *api.Client, words []string) TestModel {
 	ti := textinput.New()
-	ti.Placeholder = "Anlam..."
+	ti.Placeholder = data.T["test_placeholder"]
 	ti.Focus()
 
 	return TestModel{
@@ -99,21 +99,21 @@ func (m TestModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m TestModel) View() string {
 	var sb strings.Builder
-	sb.WriteString(titleStyle.Render("Anlam Tahmini Testi") + "\n\n")
+	sb.WriteString(titleStyle.Render(data.T["test_meaning_title"]) + "\n\n")
 	
 	if len(m.words) == 0 {
-		return docStyle.Render("Kelimeler yüklenemedi. Liste boş olabilir.")
+		return docStyle.Render(data.T["test_error_no_words"])
 	}
 
-	sb.WriteString("Soru: " + wordStyle.Render(m.words[m.currentWordIdx]) + "\n\n")
+	sb.WriteString(data.T["test_question_prefix"] + wordStyle.Render(m.words[m.currentWordIdx]) + "\n\n")
 	
 	if m.feedback != "" {
 		sb.WriteString(m.feedback + "\n\n")
-		sb.WriteString("(Sonraki için Enter, Menü için Esc)")
+		sb.WriteString(data.T["test_next_info"])
 	} else {
 		sb.WriteString(m.textInput.View())
 		if m.isChecking {
-			sb.WriteString("\n\nKontrol ediliyor...")
+			sb.WriteString("\n\n" + data.T["test_checking"])
 		}
 	}
 	return docStyle.Render(sb.String())

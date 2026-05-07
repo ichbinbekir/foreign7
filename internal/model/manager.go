@@ -29,7 +29,7 @@ type ManagerModel struct {
 	feedback       string
 	isValidating   bool
 	suggestions    []string
-	targetList     string // Boş ise "Global Arama" modu
+	targetList     string // If empty, "Global Search" mode
 	allActiveWords []string
 	wordOrigins    map[string][]string
 	ollama         *api.Client
@@ -37,9 +37,9 @@ type ManagerModel struct {
 
 func NewManagerModel(ollama *api.Client, targetList string) ManagerModel {
 	ti := textinput.New()
-	ti.Placeholder = "Aramak/Eklemek istediğiniz kelime..."
+	ti.Placeholder = data.T["manage_placeholder"]
 	if targetList == "" {
-		ti.Placeholder = "Tüm aktif listelerde ara..."
+		ti.Placeholder = data.T["manage_placeholder_global"]
 	}
 	ti.Focus()
 
@@ -64,7 +64,7 @@ func (m ManagerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tearouter.Redirect(tearouter.Pop)
 		case "enter":
 			if m.targetList == "" {
-				m.feedback = "Global modda kelime ekleme yapılamaz. Sadece arama içindir."
+				m.feedback = data.T["manage_global_error"]
 				return m, nil
 			}
 			if m.isValidating {
@@ -74,10 +74,10 @@ func (m ManagerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if word == "" {
 				return m, nil
 			}
-			// Mükerrer kontrolü (Tüm aktif listelerde ara)
+			// Duplication check (Search across all active lists)
 			for _, w := range m.allActiveWords {
 				if strings.EqualFold(w, word) {
-					m.feedback = errorStyle.Render("Bu kelime zaten aktif listelerinizde var!")
+					m.feedback = errorStyle.Render(data.T["manage_exists_error"])
 					return m, nil
 				}
 			}
@@ -89,11 +89,11 @@ func (m ManagerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.exists {
 			m.saveWord(msg.word)
 			m.allActiveWords = append(m.allActiveWords, msg.word)
-			// Origin map'i güncelle
+			// Update origin map
 			lowerW := strings.ToLower(msg.word)
 			m.wordOrigins[lowerW] = append(m.wordOrigins[lowerW], m.targetList)
 			
-			m.feedback = successStyle.Render(fmt.Sprintf("✓ %s eklendi (%s). %s", msg.word, m.targetList, msg.note))
+			m.feedback = successStyle.Render(fmt.Sprintf(data.T["manage_added_success"], msg.word, m.targetList, msg.note))
 			m.textInput.Reset()
 		} else {
 			m.feedback = errorStyle.Render(fmt.Sprintf("✗ %s? %s", msg.word, msg.note))
@@ -129,31 +129,31 @@ func (m ManagerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m ManagerModel) View() string {
 	var sb strings.Builder
-	title := "Global Arama (Görüntüleme)"
+	title := data.T["manage_title_global"]
 	if m.targetList != "" {
-		title = fmt.Sprintf("Liste Yönetimi: %s", m.targetList)
+		title = fmt.Sprintf(data.T["manage_title_list"], m.targetList)
 	}
 
 	sb.WriteString(titleStyle.Render(title) + "\n\n")
 	
-	// Toplam kelime sayısı bilgisi
-	countInfo := lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Render(fmt.Sprintf("(Toplam %d benzersiz kelime aktif)", len(m.allActiveWords)))
+	// Total word count info
+	countInfo := lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Render(fmt.Sprintf(data.T["manage_total_words"], len(m.allActiveWords)))
 	sb.WriteString(countInfo + "\n\n")
 
 	if m.targetList != "" {
-		sb.WriteString("İngilizce kelime yazın. Transgemma kontrol edip bu listeye kaydedecek.\n\n")
+		sb.WriteString(data.T["manage_desc_list"])
 	} else {
-		sb.WriteString("Seçili olan tüm listelerde arama yapıyorsunuz.\n\n")
+		sb.WriteString(data.T["manage_desc_global"])
 	}
 
 	sb.WriteString(m.textInput.View() + "\n")
 
 	if m.isValidating {
-		sb.WriteString("\nKelime doğrulanıyor...")
+		sb.WriteString("\n" + data.T["manage_validating"])
 	}
 
 	if len(m.suggestions) > 0 {
-		sb.WriteString("\n\nBulunan / Benzer kelimeler:\n")
+		sb.WriteString("\n\n" + data.T["manage_suggestions"] + "\n")
 		for _, s := range m.suggestions {
 			origins := m.wordOrigins[strings.ToLower(s)]
 			originText := ""
@@ -163,14 +163,14 @@ func (m ManagerModel) View() string {
 			sb.WriteString("- " + s + originText + "\n")
 		}
 	} else if m.textInput.Value() != "" && !m.isValidating {
-		sb.WriteString("\n\n(Bu kelime listelerinizde bulunamadı)")
+		sb.WriteString("\n\n" + data.T["manage_not_found"])
 	}
 
 	if m.feedback != "" {
 		sb.WriteString("\n\n" + m.feedback)
 	}
 
-	sb.WriteString("\n\n(Geri dönmek için Esc)")
+	sb.WriteString("\n\n" + data.T["manage_back"])
 	return docStyle.Render(sb.String())
 }
 

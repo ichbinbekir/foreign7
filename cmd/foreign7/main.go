@@ -79,7 +79,7 @@ func main() {
 
 	p := tea.NewProgram(routerModel, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
-		fmt.Printf("Bir hata oluştu: %v", err)
+		fmt.Printf("An error occurred: %v", err)
 		os.Exit(1)
 	}
 }

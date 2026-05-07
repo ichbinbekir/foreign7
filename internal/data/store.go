@@ -11,7 +11,7 @@ import (
 )
 
 var ActiveLists = make(map[string]bool)
-var SelectedList string // Navigasyon sırasında seçilen listeyi taşımak için
+var SelectedList string // Used to carry the selected list during navigation
 var AppConfig Config
 var T map[string]string
 
@@ -63,7 +63,7 @@ type Prompt struct {
 }
 
 // LoadPrompt loads a prompt from the assets/prompts.json and executes it with data
-func LoadPrompt(key string, data interface{}) (Prompt, error) {
+func LoadPrompt(key string, data any) (Prompt, error) {
 	content, err := os.ReadFile("assets/prompts.json")
 	if err != nil {
 		return Prompt{}, err
@@ -129,7 +129,7 @@ func ImportList(srcPath string) error {
 	return os.WriteFile(destPath, input, 0644)
 }
 
-// GetLists lists dizinindeki tüm .txt dosyalarını döner
+// GetLists returns all .txt files in the lists directory
 func GetLists() ([]string, error) {
 	dir := GetDataDir()
 	files, err := os.ReadDir(dir)
@@ -146,7 +146,7 @@ func GetLists() ([]string, error) {
 	return lists, nil
 }
 
-// LoadWordsFromList Belirli bir dosyadan kelimeleri yükler
+// LoadWordsFromList loads words from a specific file
 func LoadWordsFromList(filename string) ([]string, error) {
 	path := filepath.Join(GetDataDir(), filename)
 	file, err := os.Open(path)
@@ -166,7 +166,7 @@ func LoadWordsFromList(filename string) ([]string, error) {
 	return words, nil
 }
 
-// LoadActiveWords Tüm aktif listelerdeki kelimeleri (tekil olarak) döner
+// LoadActiveWords returns all words from active lists (uniquely)
 func LoadActiveWords() []string {
 	wordMap := make(map[string]bool)
 	lists, _ := GetLists()
@@ -187,7 +187,7 @@ func LoadActiveWords() []string {
 	return result
 }
 
-// GetWordOriginMap Aktif listelerdeki kelimelerin hangi listelere ait olduğunu döner
+// GetWordOriginMap returns which lists the active words belong to
 func GetWordOriginMap() map[string][]string {
 	originMap := make(map[string][]string)
 	lists, _ := GetLists()
@@ -204,14 +204,14 @@ func GetWordOriginMap() map[string][]string {
 	return originMap
 }
 
-// CreateList Yeni bir liste dosyası oluşturur
+// CreateList creates a new list file
 func CreateList(name string) error {
 	if !strings.HasSuffix(name, ".txt") {
 		name += ".txt"
 	}
 	path := filepath.Join(GetDataDir(), name)
 	
-	// Dosya zaten varsa hata dön
+	// Return error if file already exists
 	if _, err := os.Stat(path); err == nil {
 		return os.ErrExist
 	}
@@ -223,13 +223,13 @@ func CreateList(name string) error {
 	return f.Close()
 }
 
-// DeleteList Belirli bir liste dosyasını siler
+// DeleteList deletes a specific list file
 func DeleteList(name string) error {
 	path := filepath.Join(GetDataDir(), name)
 	return os.Remove(path)
 }
 
-// SaveWordToList Belirli bir listeye kelime kaydeder
+// SaveWordToList saves a word to a specific list
 func SaveWordToList(filename, word string) error {
 	path := filepath.Join(GetDataDir(), filename)
 	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)

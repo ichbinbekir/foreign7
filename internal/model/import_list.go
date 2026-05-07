@@ -19,7 +19,7 @@ type ImportListModel struct {
 
 func NewImportListModel() ImportListModel {
 	ti := textinput.New()
-	ti.Placeholder = "Dosya yolu (örn: /path/to/list.txt)..."
+	ti.Placeholder = data.T["import_placeholder"]
 	ti.Focus()
 	ti.Width = 60
 
@@ -47,14 +47,14 @@ func (m ImportListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			err := data.ImportList(path)
 			if err != nil {
 				if os.IsNotExist(err) {
-					m.err = fmt.Errorf("dosya bulunamadı")
+					m.err = fmt.Errorf(data.T["import_error_not_found"])
 				} else {
 					m.err = err
 				}
 				return m, nil
 			}
 
-			m.success = "Liste başarıyla içe aktarıldı!"
+			m.success = data.T["import_success"]
 			m.textInput.Reset()
 			return m, nil
 		}
@@ -67,8 +67,8 @@ func (m ImportListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m ImportListModel) View() string {
 	var sb strings.Builder
-	sb.WriteString(titleStyle.Render("📥 Liste İçe Aktar") + "\n\n")
-	sb.WriteString("İçe aktarılacak .txt dosyasının tam yolunu yazın:\n\n")
+	sb.WriteString(titleStyle.Render(data.T["import_title"]) + "\n\n")
+	sb.WriteString(data.T["import_prompt"] + "\n\n")
 	sb.WriteString(m.textInput.View() + "\n")
 
 	if m.err != nil {
@@ -78,6 +78,6 @@ func (m ImportListModel) View() string {
 		sb.WriteString("\n" + successStyle.Render(m.success) + "\n")
 	}
 
-	sb.WriteString("\n(Onaylamak için Enter, Geri dönmek için Esc)")
+	sb.WriteString("\n" + data.T["import_confirm"])
 	return docStyle.Render(sb.String())
 }

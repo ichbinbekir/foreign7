@@ -113,7 +113,7 @@ func (m ListSelectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.message = successStyle.Render(fmt.Sprintf(data.T["lib_delete_success"], i.name))
 					m.refreshList()
 					
-					// Eğer hiç liste kalmadıysa create-list'e yönlendir
+					// If no lists are left, redirect to create-list
 					lists, _ := data.GetLists()
 					if len(lists) == 0 {
 						return m, tearouter.Redirect(tearouter.Replace, "/create-list")
@@ -139,9 +139,9 @@ func (m ListSelectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, tearouter.Redirect(tearouter.Push, "/import")
 				}
 				if i.isGlobal {
-					data.SelectedList = "" // Global mod
+					data.SelectedList = "" // Global mode
 				} else {
-					data.SelectedList = i.name // Liste modu
+					data.SelectedList = i.name // List mode
 				}
 				return m, tearouter.Redirect(tearouter.Push, "/manage")
 			}
