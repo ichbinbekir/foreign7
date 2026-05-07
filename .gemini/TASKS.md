@@ -14,6 +14,7 @@
     - [x] **Merkezi Depolama:** Listeler artık kullanıcı cache dizininde (`~/.cache/foreign7`) tutuluyor.
     - [x] **Export/Dışa Aktar:** Listelerin üzerine gelip 'e' tuşuna basarak dışa aktarma (Yedekleme).
     - [x] **Import/İçe Aktar:** Bilgisayardaki `.txt` dosyalarını kütüphaneye dahil etme.
+    - [x] **Liste Silme:** Listeler üzerinden 'x' tuşu ile silme. Son liste silindiğinde yeni liste oluşturmaya zorlar.
 
 ## 🚀 Sırada Ne Var?
 
@@ -22,7 +23,7 @@
 - [ ] **Mod 4: Akıllı Sohbet:** Kelime listendeki kelimelere odaklanan, kullanıcıyı onları kullanmaya zorlayan chat modu.
 
 ### 2. UX ve Yönetim İyileştirmeleri
-- [ ] **Kelime Silme:** Kütüphane içinden kelime silme veya listeden çıkarma.
+- [ ] **Kelime Silme:** Kütüphane içinden münferit kelime silme.
 - [ ] **Skor Ekranı:** Test sonunda başarı yüzdesi ve yanlışların özeti.
 - [ ] **Aralıklı Tekrar (Spaced Repetition):** Yanlış bilinen kelimeleri daha sık sorma mantığı.
 
@@ -32,6 +33,6 @@
 
 ## 🛠 Mevcut Mimari Notları
 - **Ana Dosya:** `cmd/foreign7/main.go` (Router tanımları ve başlatma)
-- **Veri Yolu:** `~/.cache/foreign7/*.txt` (Otomatik migration yapıldı)
+- **Veri Yolu:** `~/.cache/foreign7/*.txt` (Doğrudan cache kullanımı)
 - **Modeller:** `internal/model/*.go` (Her ekran bir model: menu, test, sentence_mode, manager, list_select, create_list, import_list)
 - **Model:** `translategemma:latest` (Ollama)

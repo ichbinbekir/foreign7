@@ -139,6 +139,12 @@ func CreateList(name string) error {
 	return f.Close()
 }
 
+// DeleteList Belirli bir liste dosyasını siler
+func DeleteList(name string) error {
+	path := filepath.Join(GetDataDir(), name)
+	return os.Remove(path)
+}
+
 // SaveWordToList Belirli bir listeye kelime kaydeder
 func SaveWordToList(filename, word string) error {
 	path := filepath.Join(GetDataDir(), filename)

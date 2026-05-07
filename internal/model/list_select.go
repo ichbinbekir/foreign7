@@ -44,7 +44,7 @@ func (i listItem) Description() string {
 		return "Tüm aktif listelerde arama yapın (Ekleme kapalı)"
 	}
 	words, _ := data.LoadWordsFromList(i.name)
-	return fmt.Sprintf("%d kelime (Export için 'e' tuşuna basın)", len(words))
+	return fmt.Sprintf("%d kelime (Export: 'e', Sil: 'x')", len(words))
 }
 
 func (i listItem) FilterValue() string { return i.name }
@@ -99,6 +99,25 @@ func (m ListSelectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.message = errorStyle.Render("Export hatası: " + err.Error())
 				} else {
 					m.message = successStyle.Render("Liste dışa aktarıldı: " + dest)
+				}
+			}
+			return m, nil
+		case "x":
+			i, ok := m.list.SelectedItem().(listItem)
+			if ok && !i.isGlobal && !i.isCreator && !i.isImporter {
+				err := data.DeleteList(i.name)
+				if err != nil {
+					m.message = errorStyle.Render("Silme hatası: " + err.Error())
+				} else {
+					delete(data.ActiveLists, i.name)
+					m.message = successStyle.Render("Liste silindi: " + i.name)
+					m.refreshList()
+					
+					// Eğer hiç liste kalmadıysa create-list'e yönlendir
+					lists, _ := data.GetLists()
+					if len(lists) == 0 {
+						return m, tearouter.Redirect(tearouter.Replace, "/create-list")
+					}
 				}
 			}
 			return m, nil
