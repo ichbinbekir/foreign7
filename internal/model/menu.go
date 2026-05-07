@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/ichbinbekir/forign7/internal/data"
 	"github.com/ichbinbekir/tearouter"
 )
 
@@ -71,12 +72,25 @@ func NewMenuModel() MenuModel {
 	}
 }
 
+type checkListsMsg struct {
+	empty bool
+}
+
 func (m MenuModel) Init() tea.Cmd {
-	return nil
+	return func() tea.Msg {
+		lists, _ := data.GetLists()
+		return checkListsMsg{empty: len(lists) == 0}
+	}
 }
 
 func (m MenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case checkListsMsg:
+		if msg.empty {
+			return m, tearouter.Redirect(tearouter.Push, "/create-list")
+		}
+		return m, nil
+
 	case tea.WindowSizeMsg:
 		m.list.SetSize(msg.Width-4, msg.Height-4)
 		return m, nil

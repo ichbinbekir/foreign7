@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-var ActiveLists = map[string]bool{"default.txt": true}
+var ActiveLists = make(map[string]bool)
 var SelectedList string // Navigasyon sırasında seçilen listeyi taşımak için
 
 func GetDataDir() string {
@@ -18,29 +18,6 @@ func GetDataDir() string {
 	dir := filepath.Join(cacheDir, "foreign7")
 	_ = os.MkdirAll(dir, 0755)
 	return dir
-}
-
-// EnsureDataMigrated Moves lists from local folder to cache folder if needed
-func EnsureDataMigrated() {
-	oldDir := "lists"
-	newDir := GetDataDir()
-
-	if _, err := os.Stat(oldDir); err == nil {
-		files, _ := os.ReadDir(oldDir)
-		for _, f := range files {
-			if !f.IsDir() {
-				oldPath := filepath.Join(oldDir, f.Name())
-				newPath := filepath.Join(newDir, f.Name())
-				// Only copy if not exists in new location
-				if _, err := os.Stat(newPath); os.IsNotExist(err) {
-					input, _ := os.ReadFile(oldPath)
-					_ = os.WriteFile(newPath, input, 0644)
-				}
-			}
-		}
-		// Optionally rename old dir to prevent re-migration or keep as backup
-		_ = os.Rename(oldDir, oldDir+".backup")
-	}
 }
 
 // ExportList Copies a list from cache to a local destination

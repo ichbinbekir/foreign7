@@ -13,7 +13,6 @@ import (
 )
 
 func main() {
-	data.EnsureDataMigrated()
 	client, err := api.ClientFromEnvironment()
 	if err != nil {
 		log.Fatal(err)
