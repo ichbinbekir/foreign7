@@ -1,0 +1,146 @@
+package model
+
+import (
+	"context"
+	"fmt"
+	"strings"
+
+	"github.com/charmbracelet/bubbles/textarea"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/ichbinbekir/tearouter"
+	"github.com/ollama/ollama/api"
+)
+
+type SentenceTestModel struct {
+	words          []string
+	currentWordIdx int
+	textarea       textarea.Model
+	feedback       string
+	isChecking     bool
+	ollama         *api.Client
+}
+
+func NewSentenceTestModel(ollama *api.Client, words []string) SentenceTestModel {
+	ta := textarea.New()
+	ta.Placeholder = "Bu kelimeyi bir cümlede kullanın..."
+	ta.Focus()
+	ta.SetHeight(3)
+
+	return SentenceTestModel{
+		words:    words,
+		textarea: ta,
+		ollama:   ollama,
+	}
+}
+
+func (m SentenceTestModel) Init() tea.Cmd {
+	return textarea.Blink
+}
+
+func (m SentenceTestModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if m.isChecking {
+		switch msg := msg.(type) {
+		case ollamaCheckMsg:
+			m.isChecking = false
+			m.feedback = string(msg)
+			return m, nil
+		case errMsg:
+			m.isChecking = false
+			m.feedback = errorStyle.Render("Hata: " + msg.Error())
+			return m, nil
+		}
+		return m, nil
+	}
+
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "esc":
+			return m, tearouter.Redirect(tearouter.Pop)
+		case "enter":
+			if m.feedback != "" {
+				return m, func() tea.Msg { return nextWordMsg{} }
+			}
+			sentence := m.textarea.Value()
+			if strings.TrimSpace(sentence) == "" {
+				return m, nil
+			}
+			m.isChecking = true
+			return m, m.checkSentence(m.words[m.currentWordIdx], sentence)
+		}
+	case nextWordMsg:
+		m.feedback = ""
+		m.currentWordIdx = (m.currentWordIdx + 1) % len(m.words)
+		m.textarea.Reset()
+		return m, nil
+	case ollamaCheckMsg:
+		m.isChecking = false
+		m.feedback = string(msg)
+		return m, nil
+	case errMsg:
+		m.isChecking = false
+		m.feedback = errorStyle.Render("Hata: " + msg.Error())
+		return m, nil
+	}
+
+	var cmd tea.Cmd
+	m.textarea, cmd = m.textarea.Update(msg)
+	return m, cmd
+}
+
+func (m SentenceTestModel) View() string {
+	var sb strings.Builder
+	sb.WriteString(titleStyle.Render("Cümle Kurma Testi") + "\n\n")
+
+	if len(m.words) == 0 {
+		return docStyle.Render("Kelimeler yüklenemedi. Liste boş olabilir.")
+	}
+
+	sb.WriteString("Kelime: " + wordStyle.Render(m.words[m.currentWordIdx]) + "\n\n")
+
+	if m.feedback != "" {
+		fbStyle := lipgloss.NewStyle().
+			BorderStyle(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color("2")).
+			Padding(1).
+			Width(60)
+
+		sb.WriteString("Sizin Cümleniz:\n" + m.textarea.Value() + "\n\n")
+		sb.WriteString(fbStyle.Render(m.feedback) + "\n")
+		sb.WriteString("\n(Sonraki için Enter, Menü için Esc)")
+	} else {
+		sb.WriteString(m.textarea.View())
+		if m.isChecking {
+			sb.WriteString("\n\nÖğretmen cümleyi inceliyor...")
+		} else {
+			sb.WriteString("\n\n(Cümleyi bitirince Enter'a basın)")
+		}
+	}
+	return docStyle.Render(sb.String())
+}
+
+func (m SentenceTestModel) checkSentence(word, sentence string) tea.Cmd {
+	return func() tea.Msg {
+		ctx := context.Background()
+		prompt := fmt.Sprintf("Kelime: %s\nKullanıcının Cümlesi: %s\n\nLütfen değerlendir:\n1. Kelime doğru anlamda kullanılmış mı?\n2. Gramer hataları var mı?\n3. Daha doğal bir kullanım önerisi ver.", word, sentence)
+		
+		req := &api.ChatRequest{
+			Model: "translategemma:latest",
+			Messages: []api.Message{
+				{Role: "system", Content: "Sen bir dil öğretmenisin. Kullanıcının kurduğu cümleyi analiz et ve yapıcı geri bildirim ver. Çok uzun olmayan, net bir cevap yaz."},
+				{Role: "user", Content: prompt},
+			},
+			Stream: new(bool),
+		}
+		var respStr string
+		err := m.ollama.Chat(ctx, req, func(r api.ChatResponse) error {
+			respStr = r.Message.Content
+			return nil
+		})
+		if err != nil {
+			return errMsg(err)
+		}
+		return ollamaCheckMsg(respStr)
+	}
+}
