@@ -26,11 +26,10 @@ var (
 )
 
 type item struct {
-	key   string
-	label string
+	key string
 }
 
-func (i item) FilterValue() string { return i.label }
+func (i item) FilterValue() string { return data.T[i.key] }
 
 type itemDelegate struct{}
 
@@ -42,7 +41,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	if !ok {
 		return
 	}
-	str := fmt.Sprintf("%d. %s", index+1, i.label)
+	str := fmt.Sprintf("%d. %s", index+1, data.T[i.key])
 	fn := itemStyle.Render
 	if index == m.Index() {
 		fn = func(s ...string) string {
@@ -58,11 +57,11 @@ type MenuModel struct {
 
 func NewMenuModel() MenuModel {
 	items := []list.Item{
-		item{key: "test_meaning", label: data.T["menu_test_meaning"]},
-		item{key: "test_sentence", label: data.T["menu_test_sentence"]},
-		item{key: "library", label: data.T["menu_library"]},
-		item{key: "settings", label: data.T["menu_settings"]},
-		item{key: "exit", label: data.T["menu_exit"]},
+		item{key: "menu_test_meaning"},
+		item{key: "menu_test_sentence"},
+		item{key: "menu_library"},
+		item{key: "menu_settings"},
+		item{key: "menu_exit"},
 	}
 
 	l := list.New(items, itemDelegate{}, 0, 0)
@@ -107,15 +106,15 @@ func (m MenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 			switch i.key {
-			case "test_meaning":
+			case "menu_test_meaning":
 				return m, tearouter.Redirect(tearouter.Push, "/test")
-			case "test_sentence":
+			case "menu_test_sentence":
 				return m, tearouter.Redirect(tearouter.Push, "/sentence-test")
-			case "library":
+			case "menu_library":
 				return m, tearouter.Redirect(tearouter.Push, "/lists")
-			case "settings":
+			case "menu_settings":
 				return m, tearouter.Redirect(tearouter.Push, "/settings")
-			case "exit":
+			case "menu_exit":
 				return m, tea.Quit
 			}
 		case "ctrl+c":
@@ -129,5 +128,6 @@ func (m MenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m MenuModel) View() string {
+	m.list.Title = data.T["menu_title"]
 	return docStyle.Render(m.list.View())
 }

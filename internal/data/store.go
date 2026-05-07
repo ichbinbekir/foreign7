@@ -54,6 +54,7 @@ func LoadTranslations(lang string) error {
 		return err
 	}
 
+	T = make(map[string]string)
 	return json.Unmarshal(content, &T)
 }
 
