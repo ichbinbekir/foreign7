@@ -18,6 +18,7 @@
 - [x] **Teknik Geliştirmeler:**
     - [x] **Gelişmiş Prompting:** `assets/prompts.json` üzerinden sistem talimatlarını dinamik yönetme.
     - [x] **Build Sistemi:** Makefile ile varlıkların (`assets`) otomatik kopyalanması ve `bin/` altına derleme.
+    - [x] **Çoklu Dil Desteği:** `assets/lang` altındaki JSON dosyaları ile TR/EN arayüz seçenekleri.
 
 ## 🚀 Sırada Ne Var?
 
@@ -36,6 +37,8 @@
 ## 🛠 Mevcut Mimari Notları
 - **Ana Dosya:** `cmd/foreign7/main.go` (Router tanımları ve başlatma)
 - **Veri Yolu:** `~/.cache/foreign7/*.txt` (Doğrudan cache kullanımı)
-- **Modeller:** `internal/model/*.go` (Her ekran bir model: menu, test, sentence_mode, manager, list_select, create_list, import_list)
+- **Modeller:** `internal/model/*.go` (Her ekran bir model: menu, test, sentence_mode, manager, list_select, create_list, import_list, settings)
 - **Model:** `translategemma:latest` (Ollama)
 - **Promptlar:** `assets/prompts.json` (JSON tabanlı template sistemi)
+- **Dil Dosyaları:** `assets/lang/*.json` (Arayüz çevirileri)
+

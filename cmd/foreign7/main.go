@@ -13,6 +13,7 @@ import (
 )
 
 func main() {
+	data.AppConfig = data.GetConfig()
 	client, err := api.ClientFromEnvironment()
 	if err != nil {
 		log.Fatal(err)
@@ -61,6 +62,12 @@ func main() {
 			Path: "/manage",
 			Builder: func() tea.Model {
 				return model.NewManagerModel(client, data.SelectedList)
+			},
+		},
+		{
+			Path: "/settings",
+			Builder: func() tea.Model {
+				return model.NewSettingsModel()
 			},
 		},
 	}

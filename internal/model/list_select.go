@@ -18,13 +18,13 @@ type listItem struct {
 
 func (i listItem) Title() string {
 	if i.isCreator {
-		return "➕ Yeni Liste Oluştur"
+		return data.T["lib_create"]
 	}
 	if i.isImporter {
-		return "📥 Liste İçe Aktar (.txt)"
+		return data.T["lib_import"]
 	}
 	if i.isGlobal {
-		return "🌐 Global: Şu an seçili olanlar"
+		return data.T["lib_global"]
 	}
 	tick := "[ ]"
 	if data.ActiveLists[i.name] {
@@ -35,16 +35,16 @@ func (i listItem) Title() string {
 
 func (i listItem) Description() string {
 	if i.isCreator {
-		return "Kelime eklemek için yeni bir kategori oluşturun"
+		return data.T["lib_create_desc"]
 	}
 	if i.isImporter {
-		return "Bilgisayarınızdaki bir .txt dosyasını kütüphaneye kopyalayın"
+		return data.T["lib_import_desc"]
 	}
 	if i.isGlobal {
-		return "Tüm aktif listelerde arama yapın (Ekleme kapalı)"
+		return data.T["lib_global_desc"]
 	}
 	words, _ := data.LoadWordsFromList(i.name)
-	return fmt.Sprintf("%d kelime (Export: 'e', Sil: 'x')", len(words))
+	return fmt.Sprintf(data.T["lib_words_count"], len(words))
 }
 
 func (i listItem) FilterValue() string { return i.name }
@@ -56,7 +56,7 @@ type ListSelectModel struct {
 
 func NewListSelectModel() ListSelectModel {
 	l := list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0)
-	l.Title = "Kütüphane Yönetimi"
+	l.Title = data.T["lib_title"]
 	l.SetShowStatusBar(false)
 	l.Styles.Title = titleStyle
 
@@ -96,9 +96,9 @@ func (m ListSelectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				dest := i.name + ".exported.txt"
 				err := data.ExportList(i.name, dest)
 				if err != nil {
-					m.message = errorStyle.Render("Export hatası: " + err.Error())
+					m.message = errorStyle.Render(fmt.Sprintf(data.T["lib_export_error"], err.Error()))
 				} else {
-					m.message = successStyle.Render("Liste dışa aktarıldı: " + dest)
+					m.message = successStyle.Render(fmt.Sprintf(data.T["lib_export_success"], dest))
 				}
 			}
 			return m, nil
@@ -107,10 +107,10 @@ func (m ListSelectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if ok && !i.isGlobal && !i.isCreator && !i.isImporter {
 				err := data.DeleteList(i.name)
 				if err != nil {
-					m.message = errorStyle.Render("Silme hatası: " + err.Error())
+					m.message = errorStyle.Render(fmt.Sprintf(data.T["lib_delete_error"], err.Error()))
 				} else {
 					delete(data.ActiveLists, i.name)
-					m.message = successStyle.Render("Liste silindi: " + i.name)
+					m.message = successStyle.Render(fmt.Sprintf(data.T["lib_delete_success"], i.name))
 					m.refreshList()
 					
 					// Eğer hiç liste kalmadıysa create-list'e yönlendir

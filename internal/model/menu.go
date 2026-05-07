@@ -25,9 +25,12 @@ var (
 	docStyle          = lipgloss.NewStyle().Margin(1, 2)
 )
 
-type item string
+type item struct {
+	key   string
+	label string
+}
 
-func (i item) FilterValue() string { return string(i) }
+func (i item) FilterValue() string { return i.label }
 
 type itemDelegate struct{}
 
@@ -39,7 +42,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	if !ok {
 		return
 	}
-	str := fmt.Sprintf("%d. %s", index+1, i)
+	str := fmt.Sprintf("%d. %s", index+1, i.label)
 	fn := itemStyle.Render
 	if index == m.Index() {
 		fn = func(s ...string) string {
@@ -55,14 +58,15 @@ type MenuModel struct {
 
 func NewMenuModel() MenuModel {
 	items := []list.Item{
-		item("Testi Başlat (Anlam Tahmini)"),
-		item("Cümle Kurma Testi"),
-		item("Kütüphane (Listeler ve Kelime Yönetimi)"),
-		item("Çıkış"),
+		item{key: "test_meaning", label: data.T["menu_test_meaning"]},
+		item{key: "test_sentence", label: data.T["menu_test_sentence"]},
+		item{key: "library", label: data.T["menu_library"]},
+		item{key: "settings", label: data.T["menu_settings"]},
+		item{key: "exit", label: data.T["menu_exit"]},
 	}
 
 	l := list.New(items, itemDelegate{}, 0, 0)
-	l.Title = "Foreign7 - Dil Koçu"
+	l.Title = data.T["menu_title"]
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(false)
 	l.Styles.Title = titleStyle
@@ -102,14 +106,16 @@ func (m MenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if !ok {
 				return m, nil
 			}
-			switch i {
-			case "Testi Başlat (Anlam Tahmini)":
+			switch i.key {
+			case "test_meaning":
 				return m, tearouter.Redirect(tearouter.Push, "/test")
-			case "Cümle Kurma Testi":
+			case "test_sentence":
 				return m, tearouter.Redirect(tearouter.Push, "/sentence-test")
-			case "Kütüphane (Listeler ve Kelime Yönetimi)":
+			case "library":
 				return m, tearouter.Redirect(tearouter.Push, "/lists")
-			case "Çıkış":
+			case "settings":
+				return m, tearouter.Redirect(tearouter.Push, "/settings")
+			case "exit":
 				return m, tea.Quit
 			}
 		case "ctrl+c":
