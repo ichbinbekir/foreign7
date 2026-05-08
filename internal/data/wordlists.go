@@ -146,3 +146,21 @@ func SaveWordToList(filename, word string) error {
 	_, err = f.WriteString(word + "\n")
 	return err
 }
+
+// RemoveWordFromList removes a word from a specific list file
+func RemoveWordFromList(filename, word string) error {
+	words, err := LoadWordsFromList(filename)
+	if err != nil {
+		return err
+	}
+
+	var sb strings.Builder
+	for _, w := range words {
+		if !strings.EqualFold(w, word) {
+			sb.WriteString(w + "\n")
+		}
+	}
+
+	path := filepath.Join(GetDataDir(), filename)
+	return os.WriteFile(path, []byte(sb.String()), 0644)
+}

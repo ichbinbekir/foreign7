@@ -58,5 +58,7 @@
   "manage_validating": "Validating word...",
   "manage_suggestions": "Found / Similar words:",
   "manage_not_found": "(This word was not found in your lists)",
+  "manage_delete_info": "(Press 'x' to delete the selected word from ALL lists)",
+  "manage_deleted_success": "✓ %s successfully deleted.",
   "manage_back": "(Press Esc to go back)"
 }

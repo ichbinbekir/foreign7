@@ -15,6 +15,7 @@
     - [x] **Export/Dışa Aktar:** Listelerin üzerine gelip 'e' tuşuna basarak dışa aktarma (Yedekleme).
     - [x] **Import/İçe Aktar:** Bilgisayardaki `.txt` dosyalarını kütüphaneye dahil etme.
     - [x] **Liste Silme:** Listeler üzerinden 'x' tuşu ile silme. Son liste silindiğinde yeni liste oluşturmaya zorlar.
+    - [x] **Kelime Silme:** Kütüphane içinden münferit kelime silme (Arama sonuçları üzerinde 'x' tuşu ile).
 - [x] **Teknik Geliştirmeler:**
     - [x] **Gelişmiş Prompting:** `assets/prompts.json` üzerinden sistem talimatlarını dinamik yönetme.
     - [x] **Build Sistemi:** Makefile ile varlıkların (`assets`) otomatik kopyalanması ve `bin/` altına derleme.
@@ -28,7 +29,6 @@
 - [ ] **Mod 4: Akıllı Sohbet:** Kelime listendeki kelimelere odaklanan, kullanıcıyı onları kullanmaya zorlayan chat modu.
 
 ### 2. UX ve Yönetim İyileştirmeleri
-- [ ] **Kelime Silme:** Kütüphane içinden münferit kelime silme.
 - [ ] **Skor Ekranı:** Test sonunda başarı yüzdesi ve yanlışların özeti.
 - [ ] **Aralıklı Tekrar (Spaced Repetition):** Yanlış bilinen kelimeleri daha sık sorma mantığı.
 
@@ -43,4 +43,3 @@
 - **Model:** `translategemma:latest` (Ollama)
 - **Promptlar:** `assets/prompts.json` (JSON tabanlı template sistemi)
 - **Dil Dosyaları:** `assets/lang/*.json` (Arayüz çevirileri)
-

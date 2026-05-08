@@ -33,6 +33,7 @@ type ManagerModel struct {
 	allActiveWords []string
 	wordOrigins    map[string][]string
 	ollama         *api.Client
+	selectedIndex  int
 }
 
 func NewManagerModel(ollama *api.Client, targetList string) ManagerModel {
@@ -49,6 +50,7 @@ func NewManagerModel(ollama *api.Client, targetList string) ManagerModel {
 		allActiveWords: data.LoadActiveWords(),
 		wordOrigins:    data.GetWordOriginMap(),
 		ollama:         ollama,
+		selectedIndex:  -1,
 	}
 }
 
@@ -62,6 +64,36 @@ func (m ManagerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "esc":
 			return m, tearouter.Redirect(tearouter.Pop)
+		case "up":
+			if len(m.suggestions) > 0 {
+				m.selectedIndex--
+				if m.selectedIndex < -1 {
+					m.selectedIndex = len(m.suggestions) - 1
+				}
+			}
+			return m, nil
+		case "down":
+			if len(m.suggestions) > 0 {
+				m.selectedIndex++
+				if m.selectedIndex >= len(m.suggestions) {
+					m.selectedIndex = -1
+				}
+			}
+			return m, nil
+		case "x":
+			if m.selectedIndex >= 0 && m.selectedIndex < len(m.suggestions) {
+				wordToDelete := m.suggestions[m.selectedIndex]
+				origins := m.wordOrigins[strings.ToLower(wordToDelete)]
+				for _, listName := range origins {
+					_ = data.RemoveWordFromList(listName, wordToDelete)
+				}
+				m.feedback = successStyle.Render(fmt.Sprintf(data.T["manage_deleted_success"], wordToDelete))
+				// Refresh data
+				m.allActiveWords = data.LoadActiveWords()
+				m.wordOrigins = data.GetWordOriginMap()
+				m.updateSuggestions()
+				return m, nil
+			}
 		case "enter":
 			if m.targetList == "" {
 				m.feedback = data.T["manage_global_error"]
@@ -95,6 +127,7 @@ func (m ManagerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			
 			m.feedback = successStyle.Render(fmt.Sprintf(data.T["manage_added_success"], msg.word, m.targetList, msg.note))
 			m.textInput.Reset()
+			m.updateSuggestions()
 		} else {
 			m.feedback = errorStyle.Render(fmt.Sprintf("✗ %s? %s", msg.word, msg.note))
 		}
@@ -107,24 +140,31 @@ func (m ManagerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	var cmd tea.Cmd
 	m.textInput, cmd = m.textInput.Update(msg)
+	m.updateSuggestions()
 
-	// Suggestions
+	return m, cmd
+}
+
+func (m *ManagerModel) updateSuggestions() {
 	input := strings.ToLower(m.textInput.Value())
 	if input != "" {
-		m.suggestions = []string{}
+		newSuggestions := []string{}
 		for _, w := range m.allActiveWords {
 			if strings.Contains(strings.ToLower(w), input) {
-				m.suggestions = append(m.suggestions, w)
-				if len(m.suggestions) > 10 {
+				newSuggestions = append(newSuggestions, w)
+				if len(newSuggestions) > 10 {
 					break
 				}
 			}
 		}
+		m.suggestions = newSuggestions
+		if m.selectedIndex >= len(m.suggestions) {
+			m.selectedIndex = len(m.suggestions) - 1
+		}
 	} else {
 		m.suggestions = nil
+		m.selectedIndex = -1
 	}
-
-	return m, cmd
 }
 
 func (m ManagerModel) View() string {
@@ -154,13 +194,22 @@ func (m ManagerModel) View() string {
 
 	if len(m.suggestions) > 0 {
 		sb.WriteString("\n\n" + data.T["manage_suggestions"] + "\n")
-		for _, s := range m.suggestions {
+		for i, s := range m.suggestions {
 			origins := m.wordOrigins[strings.ToLower(s)]
 			originText := ""
 			if len(origins) > 0 {
 				originText = listTagStyle.Render(" [" + strings.Join(origins, ", ") + "]")
 			}
-			sb.WriteString("- " + s + originText + "\n")
+			prefix := "- "
+			style := lipgloss.NewStyle()
+			if i == m.selectedIndex {
+				prefix = "> "
+				style = style.Foreground(lipgloss.Color("170")).Bold(true)
+			}
+			sb.WriteString(style.Render(prefix+s) + originText + "\n")
+		}
+		if m.selectedIndex >= 0 {
+			sb.WriteString("\n" + lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Render(data.T["manage_delete_info"]))
 		}
 	} else if m.textInput.Value() != "" && !m.isValidating {
 		sb.WriteString("\n\n" + data.T["manage_not_found"])

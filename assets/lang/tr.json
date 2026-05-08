@@ -58,5 +58,7 @@
   "manage_validating": "Kelime doğrulanıyor...",
   "manage_suggestions": "Bulunan / Benzer kelimeler:",
   "manage_not_found": "(Bu kelime listelerinizde bulunamadı)",
+  "manage_delete_info": "(Seçili kelimeyi TÜM listelerden silmek için 'x' tuşuna basın)",
+  "manage_deleted_success": "✓ %s başarıyla silindi.",
   "manage_back": "(Geri dönmek için Esc)"
 }
