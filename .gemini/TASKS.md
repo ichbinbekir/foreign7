@@ -21,6 +21,7 @@
     - [x] **Build System:** Automatic copying of assets and compilation under `bin/` with Makefile.
     - [x] **Multi-language Support:** TR/EN interface options with JSON files under `assets/lang`.
     - [x] **Data Layer Refactoring:** Separation of code under `internal/data` into modular files (`config`, `prompts`, `wordlists`).
+    - [x] **Routing Evolution:** Upgraded `tearouter` to v1.1.0 and implemented hierarchical subrouting for better organization.
 
 ## 🚀 What's Next?
 

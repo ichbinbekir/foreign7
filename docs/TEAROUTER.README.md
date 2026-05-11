@@ -6,6 +6,7 @@ TeaRouter is designed to simplify page (model) management and navigation in comp
 
 ## Features
 
+- **Hierarchical Sub-Routing**: Define nested routes and automatically build the navigation stack.
 - **Stack-Based Navigation**: Easily switch between pages with `Push` and `Pop` operations.
 - **Declarative Routing**: Define your routes in a clean and readable way.
 - **State-Resetting Navigation**: Navigate to a new page by clearing the navigation history using the `Go` method.
@@ -18,9 +19,40 @@ TeaRouter is designed to simplify page (model) management and navigation in comp
 go get github.com/ichbinbekir/tearouter
 ```
 
+## Hierarchical Sub-Routing
+
+Inspired by **GoRouter**, TeaRouter supports hierarchical route definitions. When you navigate to a deep path like `/main/settings/profile`, TeaRouter automatically builds the entire stack of parent models. This allows natural `Pop` behavior (going from Profile to Settings, then to Main).
+
+```go
+routes := []tearouter.Route{
+    {
+        Path: "/main",
+        Builder: func() tea.Model { return MainModel{} },
+        Children: []tearouter.Route{
+            {
+                Path: "settings", // Relative path: /main/settings
+                Builder: func() tea.Model { return SettingsModel{} },
+                Children: []tearouter.Route{
+                    {
+                        Path: "profile", // Relative path: /main/settings/profile
+                        Builder: func() tea.Model { return ProfileModel{} },
+                    },
+                },
+            },
+        },
+    },
+}
+```
+
+When you call `tearouter.Redirect(tearouter.Go, "/main/settings/profile")`:
+1. The stack is cleared.
+2. `MainModel`, `SettingsModel`, and `ProfileModel` are created and stacked in order.
+3. The user sees the `ProfileModel`.
+4. Calling `Pop` will naturally return the user to `SettingsModel`.
+
 ## Quick Start
 
-Below is a basic example of `tearouter` usage, switching between two pages (`home` and `settings`).
+Below is a basic example of `tearouter` usage, switching between pages.
 
 ```go
 package main
@@ -30,77 +62,47 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/your-username/tearouter"
+	"github.com/ichbinbekir/tearouter"
 )
 
 // --- Our Page Models ---
 
-// HomePageModel
 type HomePageModel struct{}
-
 func (m HomePageModel) Init() tea.Cmd { return nil }
-func (m HomePageModel) View() string {
-	return "Home Page\n\nPress 's' to go to the settings page.\nPress 'q' to quit."
-}
+func (m HomePageModel) View() string { return "Home Page\n\nPress 's' for Settings\nPress 'q' to quit." }
 func (m HomePageModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
+	if msg, ok := msg.(tea.KeyMsg); ok {
 		switch msg.String() {
-		case "s":
-			// Push the settings page onto the stack
-			return m, tearouter.Redirect(tearouter.Push, "/settings")
-		case "q", "ctrl+c":
-			return m, tea.Quit
+		case "s": return m, tearouter.Redirect(tearouter.Push, "/settings")
+		case "q": return m, tea.Quit
 		}
 	}
 	return m, nil
 }
 
-// SettingsPageModel
 type SettingsPageModel struct{}
-
 func (m SettingsPageModel) Init() tea.Cmd { return nil }
-func (m SettingsPageModel) View() string {
-	return "Settings Page\n\nPress 'b' to go back."
-}
+func (m SettingsPageModel) View() string { return "Settings Page\n\nPress 'b' to go back." }
 func (m SettingsPageModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "b":
-			// Pop the current page from the stack
-			return m, tearouter.Redirect(tearouter.Pop)
-		}
+	if msg, ok := msg.(tea.KeyMsg); ok && msg.String() == "b" {
+		return m, tearouter.Redirect(tearouter.Pop)
 	}
 	return m, nil
 }
-
-// --- Main Application ---
 
 func main() {
-	// Define routes
-
-	outes := []tearouter.Route{
-		{
-			Path:    "/",
-			Builder: func() tea.Model { return HomePageModel{} },
-		},
-		{
-			Path:    "/settings",
-			Builder: func() tea.Model { return SettingsPageModel{} },
-		},
+	routes := []tearouter.Route{
+		{ Path: "/", Builder: func() tea.Model { return HomePageModel{} } },
+		{ Path: "/settings", Builder: func() tea.Model { return SettingsPageModel{} } },
 	}
 
-	// Create the router model
-
-	outerModel := tearouter.Model{
+	routerModel := tearouter.Model{
 		InitialRoute: "/",
 		Routes:       routes,
 	}
 
-	p := tea.NewProgram(routerModel)
-	if err := p.Start(); err != nil {
-		fmt.Printf("An error has occurred: %v", err)
+	if _, err := tea.NewProgram(routerModel).Run(); err != nil {
+		fmt.Printf("Error: %v", err)
 		os.Exit(1)
 	}
 }
@@ -110,56 +112,20 @@ func main() {
 
 Navigation is triggered by the `tearouter.Redirect` command.
 
-- `tearouter.Go`: Clears the navigation stack and navigates to the specified target. It's not possible to go back. Typically used for situations like redirecting to the main page after login.
-  ```go
-  return m, tearouter.Redirect(tearouter.Go, "/home")
-  ```
-
-- `tearouter.Push`: Adds a new page onto the current stack. The user can go back.
-  ```go
-  return m, tearouter.Redirect(tearouter.Push, "/profile")
-  ```
-
-- `tearouter.Replace`: Replaces the current (topmost) page on the stack with a new one. The stack size does not change.
-  ```go
-  return m, tearouter.Redirect(tearouter.Replace, "/profile/edit")
-  ```
-
-- `tearouter.Pop`: Removes the topmost page from the stack and returns to the previous one. Returns an error if there is only one page on the stack.
-  ```go
-  return m, tearouter.Redirect(tearouter.Pop)
-  ```
+- `tearouter.Go`: Builds the full hierarchy of the target path and sets it as the new stack.
+- `tearouter.Push`: Adds the full hierarchy of the target path on top of the current stack.
+- `tearouter.Replace`: Replaces the current stack with the full hierarchy of the target path.
+- `tearouter.Pop`: Removes the topmost page from the stack and returns to the previous one.
 
 ## Middleware Usage
 
-Middleware is a function that processes every navigation request. You can perform logging or prevent a user from accessing a page they are not authorized for.
-
-If the middleware returns `""` (an empty string), navigation proceeds as normal. If it returns a new path, the user is redirected to that path.
+Middleware allows you to intercept navigation requests for tasks like authentication.
 
 ```go
-// Example: Auth Middleware
-var isAuthenticated = false
-
 func authMiddleware(targetPath string) (newPath string) {
-	// Don't interfere with navigation to or from the login page
-	if targetPath == "/login" || !isAuthenticated {
-		return "" // Proceed
-	}
-
-	if !isAuthenticated {
-		// If the user is not logged in and tries to access a protected page,
-		// redirect them to the login page.
+	if !isLoggedIn && targetPath != "/login" {
 		return "/login"
 	}
-
-	return "" // Logged in, proceed
-}
-
-func main() {
-	routerModel := tearouter.Model{
-		// ...
-		Middleware: authMiddleware,
-	}
-	// ...
+	return ""
 }
 ```

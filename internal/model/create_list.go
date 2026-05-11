@@ -62,7 +62,7 @@ func (m CreateListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			data.ActiveLists[name] = true
 			data.SelectedList = name
 			// Use Replace to avoid going back to this screen
-			return m, tearouter.Redirect(tearouter.Replace, "/manage")
+			return m, tearouter.Redirect(tearouter.Replace, "/lists/manage")
 		}
 	}
 

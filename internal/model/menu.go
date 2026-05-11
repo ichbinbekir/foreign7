@@ -90,7 +90,7 @@ func (m MenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case checkListsMsg:
 		if msg.empty {
-			return m, tearouter.Redirect(tearouter.Push, "/create-list")
+			return m, tearouter.Redirect(tearouter.Push, "/lists/create")
 		}
 		return m, nil
 

@@ -25,49 +25,53 @@ func main() {
 			Builder: func() tea.Model {
 				return model.NewMenuModel()
 			},
-		},
-		{
-			Path: "/test",
-			Builder: func() tea.Model {
-				words := data.LoadActiveWords()
-				return model.NewTestModel(client, words)
-			},
-		},
-		{
-			Path: "/sentence-test",
-			Builder: func() tea.Model {
-				words := data.LoadActiveWords()
-				return model.NewSentenceTestModel(client, words)
-			},
-		},
-		{
-			Path: "/lists",
-			Builder: func() tea.Model {
-				return model.NewListSelectModel()
-			},
-		},
-		{
-			Path: "/create-list",
-			Builder: func() tea.Model {
-				return model.NewCreateListModel()
-			},
-		},
-		{
-			Path: "/import",
-			Builder: func() tea.Model {
-				return model.NewImportListModel()
-			},
-		},
-		{
-			Path: "/manage",
-			Builder: func() tea.Model {
-				return model.NewManagerModel(client, data.SelectedList)
-			},
-		},
-		{
-			Path: "/settings",
-			Builder: func() tea.Model {
-				return model.NewSettingsModel()
+			Children: []tearouter.Route{
+				{
+					Path: "test",
+					Builder: func() tea.Model {
+						words := data.LoadActiveWords()
+						return model.NewTestModel(client, words)
+					},
+				},
+				{
+					Path: "sentence-test",
+					Builder: func() tea.Model {
+						words := data.LoadActiveWords()
+						return model.NewSentenceTestModel(client, words)
+					},
+				},
+				{
+					Path: "settings",
+					Builder: func() tea.Model {
+						return model.NewSettingsModel()
+					},
+				},
+				{
+					Path: "lists",
+					Builder: func() tea.Model {
+						return model.NewListSelectModel()
+					},
+					Children: []tearouter.Route{
+						{
+							Path: "create",
+							Builder: func() tea.Model {
+								return model.NewCreateListModel()
+							},
+						},
+						{
+							Path: "import",
+							Builder: func() tea.Model {
+								return model.NewImportListModel()
+							},
+						},
+						{
+							Path: "manage",
+							Builder: func() tea.Model {
+								return model.NewManagerModel(client, data.SelectedList)
+							},
+						},
+					},
+				},
 			},
 		},
 	}
