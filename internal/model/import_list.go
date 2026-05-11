@@ -47,7 +47,7 @@ func (m ImportListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			err := data.ImportList(path)
 			if err != nil {
 				if os.IsNotExist(err) {
-					m.err = fmt.Errorf(data.T["import_error_not_found"])
+					m.err = fmt.Errorf("%s", data.T["import_error_not_found"])
 				} else {
 					m.err = err
 				}

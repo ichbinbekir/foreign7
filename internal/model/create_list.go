@@ -51,7 +51,7 @@ func (m CreateListModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			err := data.CreateList(name)
 			if err != nil {
 				if os.IsExist(err) {
-					m.err = fmt.Errorf(data.T["create_error_exists"])
+					m.err = fmt.Errorf("%s", data.T["create_error_exists"])
 				} else {
 					m.err = err
 				}
